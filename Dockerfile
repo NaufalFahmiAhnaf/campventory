@@ -1,6 +1,6 @@
 FROM php:8.3-fpm-alpine
 
-# Install system dependencies
+# Install system dependencies (termasuk nginx)
 RUN apk add --no-cache \
     bash \
     curl \
@@ -14,7 +14,8 @@ RUN apk add --no-cache \
     oniguruma-dev \
     git \
     nodejs \
-    npm
+    npm \
+    nginx
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -33,8 +34,18 @@ COPY . /var/www
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 RUN npm install && npm run build
 
-# Set permissions for Laravel
+# Salin konfigurasi Nginx Produksi
+COPY nginx-prod.conf /etc/nginx/http.d/default.conf
+
+# Salin entrypoint script & buat menjadi executable
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Set permissions untuk Laravel
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-EXPOSE 9000
-CMD ["php-fpm"]
+# Expose port HTTP default
+EXPOSE 80
+
+# Jalankan entrypoint script yang memulai PHP-FPM dan Nginx
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
