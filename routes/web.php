@@ -60,12 +60,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/reports/borrowings/excel', [ReportController::class, 'exportBorrowingsExcel'])->name('reports.borrowings.excel');
     });
 
-    // --- Kelola User (Admin) ---
+    // --- Kelola User & Tindakan Khusus (Admin) ---
     Route::middleware('role:admin')->group(function () {
         Route::get('/users', function () {
             return response('Fitur Kelola User dalam pengembangan.', 200);
         })->name('users.index');
+        
+        Route::delete('/products/{product}/force', [App\Http\Controllers\ProductController::class, 'forceDestroy'])->name('products.force-destroy');
+    });
+
+    // --- Log Aktivitas (Admin & Manager) ---
+    Route::middleware('role:admin,manager')->group(function () {
+        Route::get('/activity-logs', [App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-logs.index');
     });
 });
 
 require __DIR__.'/auth.php';
+

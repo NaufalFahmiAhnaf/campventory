@@ -115,6 +115,21 @@
         </a>
         @endif
 
+        <!-- Log Aktivitas (Admin & Manager) -->
+        @if(Auth::user()->isAdmin() || Auth::user()->isManager())
+        <a href="{{ route('activity-logs.index') }}" 
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-[13px] transition-all duration-150 active:scale-98
+                  {{ request()->routeIs('activity-logs.*') ? 'active-timbul' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/40' }}"
+           :class="sidebarCollapsed ? 'justify-center px-0' : ''"
+           title="Log Aktivitas"
+        >
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Log Aktivitas</span>
+        </a>
+        @endif
+
         <!-- Kelola User (Admin Only) -->
         @if(Auth::user()->isAdmin())
         <div class="pt-3 pb-1 shrink-0" x-show="!sidebarCollapsed" x-transition:enter="transition duration-200">

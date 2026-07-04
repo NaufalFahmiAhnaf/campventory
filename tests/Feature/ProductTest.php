@@ -123,6 +123,26 @@ class ProductTest extends TestCase
         $response = $this->actingAs($this->admin)->delete(route('products.destroy', $product));
 
         $response->assertRedirect(route('products.index'));
+        $this->assertSoftDeleted($product);
+    }
+
+    /**
+     * Test: Admin bisa menghapus permanen barang yang tidak memiliki riwayat.
+     */
+    public function test_admin_bisa_force_delete_barang_tanpa_riwayat(): void
+    {
+        $product = Product::create([
+            'code' => 'DEL-002',
+            'name' => 'Barang Hapus Permanen',
+            'category_id' => $this->category->id,
+            'stock' => 1,
+            'storage_location' => 'Rak Z',
+            'condition' => 'Baik',
+        ]);
+
+        $response = $this->actingAs($this->admin)->delete(route('products.force-destroy', $product));
+
+        $response->assertRedirect(route('products.index'));
         $this->assertDatabaseMissing('products', ['id' => $product->id]);
     }
 

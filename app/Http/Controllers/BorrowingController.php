@@ -101,6 +101,7 @@ class BorrowingController extends Controller
             }
 
             DB::commit();
+            \App\Models\ActivityLog::log('Catat Peminjaman', 'Transaksi peminjaman baru dicatat untuk peminjam "' . $borrowing->borrower_name . '".');
             return redirect()->route('borrowings.index')->with('success', 'Transaksi peminjaman berhasil dibuat.');
 
         } catch (\Exception $e) {
@@ -154,6 +155,7 @@ class BorrowingController extends Controller
             }
 
             DB::commit();
+            \App\Models\ActivityLog::log('Kembalikan Barang', 'Pengembalian barang untuk peminjam "' . $borrowing->borrower_name . '" berhasil dicatat.');
             return redirect()->route('borrowings.index')->with('success', 'Pengembalian barang berhasil dicatat. Stok barang telah dikembalikan ke dalam gudang.');
 
         } catch (\Exception $e) {

@@ -98,7 +98,8 @@ class ProductController extends Controller
             $data['image_path'] = $imagePath;
         }
 
-        Product::create($data);
+        $product = Product::create($data);
+        \App\Models\ActivityLog::log('Tambah Barang', 'Barang "' . $product->name . '" (Kode: ' . $product->code . ', Stok: ' . $product->stock . ') berhasil ditambahkan.');
 
         return redirect()->route('products.index')->with('success', 'Barang "' . $request->name . '" berhasil ditambahkan.');
     }
@@ -163,6 +164,7 @@ class ProductController extends Controller
         }
 
         $product->update($data);
+        \App\Models\ActivityLog::log('Ubah Barang', 'Data barang "' . $product->name . '" (Kode: ' . $product->code . ') berhasil diperbarui.');
 
         return redirect()->route('products.index')->with('success', 'Barang "' . $request->name . '" berhasil diperbarui.');
     }
@@ -181,17 +183,54 @@ class ProductController extends Controller
             ->exists();
 
         if ($isBorrowed) {
-            return redirect()->route('products.index')->with('error', 'Barang "' . $product->name . '" tidak dapat dihapus karena saat ini sedang dipinjam.');
-        }
-
-        // Hapus file gambar dari storage
-        if ($product->image_path) {
-            Storage::disk('public')->delete($product->image_path);
+            return redirect()->route('products.index')->with('error', 'Barang "' . $product->name . '" tidak dapat diarsipkan karena saat ini sedang dipinjam.');
         }
 
         $product->delete();
 
-        return redirect()->route('products.index')->with('success', 'Barang berhasil dihapus.');
+        \App\Models\ActivityLog::log('Arsipkan Barang', 'Barang "' . $product->name . '" (Kode: ' . $product->code . ') telah diarsipkan (Soft Delete).');
+
+        return redirect()->route('products.index')->with('success', 'Barang berhasil diarsipkan. Riwayat transaksi masa lalu tetap aman terjaga.');
+    }
+
+    /**
+     * Hapus barang secara permanen dari database.
+     */
+    public function forceDestroy($id)
+    {
+        $product = Product::withTrashed()->findOrFail($id);
+
+        // 1. Cegah penghapusan permanen jika barang memiliki riwayat peminjaman di masa lalu
+        $hasHistory = $product->borrowingDetails()->exists();
+        if ($hasHistory) {
+            return redirect()->route('products.index')->with('error', 'Barang "' . $product->name . '" memiliki riwayat transaksi peminjaman di masa lalu. Barang ini tidak bisa dihapus secara permanen agar integritas laporan sejarah tetap aman. Gunakan tombol "Hapus (Arsipkan)" saja.');
+        }
+
+        // 2. Cegah penghapusan jika barang sedang aktif dipinjam
+        $isBorrowed = $product->borrowingDetails()
+            ->whereHas('borrowing', function($query) {
+                $query->where('status', 'Dipinjam');
+            })
+            ->whereNull('returned_at')
+            ->exists();
+
+        if ($isBorrowed) {
+            return redirect()->route('products.index')->with('error', 'Barang "' . $product->name . '" tidak dapat dihapus permanen karena saat ini sedang dipinjam.');
+        }
+
+        // Hapus file gambar dari storage jika ada
+        if ($product->image_path) {
+            Storage::disk('public')->delete($product->image_path);
+        }
+
+        $name = $product->name;
+        $code = $product->code;
+        
+        $product->forceDelete();
+
+        \App\Models\ActivityLog::log('Hapus Barang Permanen', 'Barang "' . $name . '" (Kode: ' . $code . ') telah dihapus secara permanen dari database.');
+
+        return redirect()->route('products.index')->with('success', 'Barang "' . $name . '" berhasil dihapus secara permanen dari sistem.');
     }
 
     /**

@@ -78,6 +78,12 @@
                 </div>
             </div>
 
+            <!-- Catatan Integrasi Riwayat -->
+            <div class="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl p-4 text-xs text-indigo-800 dark:text-indigo-400 flex items-start gap-2.5 shadow-sm">
+                <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span><strong>Tips Keamanan Aset:</strong> Melakukan penghapusan barang lewat tombol <strong>Arsipkan</strong> akan menyembunyikan barang dari menu operasional tanpa merusak atau menghilangkan riwayat transaksi peminjaman di masa lalu. Tombol <strong>Hapus Permanen</strong> hanya dapat digunakan oleh Admin jika barang tersebut memang belum pernah dipinjam sama sekali.</span>
+            </div>
+
             <!-- Tabel Data Master Barang -->
             <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-150 dark:border-slate-800 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
@@ -171,13 +177,25 @@
                                                     Edit
                                                 </a>
                                                 
-                                                <form action="{{ route('products.destroy', $prod->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus barang ini dari database?');">
+                                                <!-- Hapus Biasa / Arsipkan (Soft Delete) -->
+                                                <form action="{{ route('products.destroy', $prod->id) }}" method="POST" onsubmit="return confirm('Arsipkan barang ini? Data barang akan disembunyikan dari menu transaksi, tetapi tidak akan menghapus riwayat transaksi peminjaman di masa lalu.');" class="inline">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="table-action table-action-danger" title="Hapus Barang">
-                                                        Hapus
+                                                    <button type="submit" class="table-action table-action-neutral" title="Arsipkan Barang (Soft Delete)" style="color: #64748b;">
+                                                        Arsipkan
                                                     </button>
                                                 </form>
+                                                
+                                                <!-- Hapus Permanen (Hanya untuk Admin) -->
+                                                @if(Auth::user()->isAdmin())
+                                                    <form action="{{ route('products.force-destroy', $prod->id) }}" method="POST" onsubmit="return confirm('Hapus permanen barang ini dari database? Tindakan ini hanya berhasil jika barang BELUM pernah dipinjam dalam riwayat transaksi.');" class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="table-action table-action-danger" title="Hapus Permanen dari Database">
+                                                            Hapus Permanen
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             @endif
                                         </div>
                                     </td>
