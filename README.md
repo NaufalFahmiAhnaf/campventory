@@ -1,5 +1,7 @@
 # CampVentory - Aplikasi Manajemen Inventaris Peralatan Camping
 
+**Link Website Live:** [https://campventory-inlife.vercel.app/](https://campventory-inlife.vercel.app/)
+
 Aplikasi Manajemen Inventaris Peralatan Camping (**CampVentory**) adalah sistem berbasis web yang digunakan untuk mengelola inventarisasi alat-alat lapangan/camping, manajemen kategori barang, serta pencatatan transaksi peminjaman dan pengembalian barang secara real-time. Aplikasi ini dibangun menggunakan **Laravel 12** dan **MySQL**, serta telah terkonfigurasi menggunakan **Docker** untuk kemudahan deployment.
 
 ---
